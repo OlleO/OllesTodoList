@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OllesTodoList.Application\OllesTodoList.Application.csproj" />
+    <ProjectReference Include="..\OllesTodoListApi.Infrastructure\OllesTodoListApi.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,8 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OllesTodoList.Application;
+using OllesTodoList.Application.Operations;
+using OllesTodoListApi.Infrastructure;
 using OllesTodoListApi.WebUI.ResponseModels;
 
 namespace OllesTodoListApi.WebUI;
@@ -10,17 +14,9 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the pipeline
-        // builder.Services.AddWebUIServices(); 
-
-        builder.Services.AddEndpointsApiExplorer(); 
-        builder.Services.AddSwaggerGen(o => 
-        {
-            o.SwaggerDoc("v1", new() 
-            {
-                Version = "v1",
-                Title = "Olles Todo List API"
-            });
-        });
+        builder.Services.AddApplicationServices();
+        builder.Services.AddInfrastructureServices();
+        builder.Services.AddWebUIServices(); 
 
         var app = builder.Build();
 
@@ -33,20 +29,30 @@ public class Program
 
         // Adding minimal API endpoints, break this out of Program.cs eventually
 
-        app.MapGet("/todoItems", () =>
+        app.MapGet("/todoItems", async ([FromServices] IMediator mediator, CancellationToken ct) =>
         {
-            var todoItems = new List<TodoItemResponseModel>()
-            {
-                new() { Id = 1, Title = "First item", Status = "Complete" },
-                new() { Id = 2, Title = "Second item", Status = "Not complete"}
-            };
+            var query = new GetAll.Query();
+
+            var result = (await mediator.Send(query, ct)).TodoItems;
+
+            var todoItems = result.Select(x =>
+                new TodoItemResponseModel()
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Status = x.Status
+                });
 
             return todoItems;
         });
 
-        app.MapGet("/todoItems/{id}", (long id) =>
+        app.MapGet("/todoItems/{id}", async ([FromServices] IMediator mediator, long id, CancellationToken ct) =>
         {
-            var todoItem = new TodoItemResponseModel() { Id = id, Title = $"{id}:th item", Status = "Not complete" };
+            var query = new GetById.Query(id);
+
+            var result = (await mediator.Send(query, ct)).TodoItem;
+
+            var todoItem = new TodoItemResponseModel() { Id = result.Id, Title = result.Title, Status = result.Status };
            
             return todoItem;
         });
